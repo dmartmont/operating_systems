@@ -19,6 +19,12 @@ $(BINDIR)/$(TARGET): $(OBJECTS)
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	$(CXX) $(CFLAGS) -c $< -o $@
 
+file: file.o
+	$(CXX) -o $@ $^
+
+file.o: file.cpp
+	$(CXX) -c $^ -Wno-narrowing
+
 directories:
 	@mkdir -p $(BUILDDIR)
 	@mkdir -p $(BINDIR) 

@@ -28,10 +28,10 @@
 
 
 2.2.7 Guarda en el memref de destino el valor de la posicion memref_src+integer
-0110(4) <flag>(1) <memref_dst>(15) <memref_src>(15) <integer>(15) <pad>(13)
+0110(4) <flag>(1) <memref_dst>(15) <memref_src>(15) <integer>(15) <pad>(14)
 
 2.2.8 Guarda en memref_dst+integer el contenido de memref_src
-0111(4) <flag>(1) <memref_dst>(15) <integer>(15) <memref_src>(15) <pad>(13)
+0111(4) <flag>(1) <memref_dst>(15) <integer>(15) <memref_src>(15) <pad>(14)
 
 2.2.11 Lee una cadena del proceso de control y la pone en DATASTR - readStr(<memref>, <memref>)
 1010(4) <memrefdst>(15) <memrefsize>(15) <pad>(30)
