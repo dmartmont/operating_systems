@@ -1,36 +1,55 @@
 CC 			= g++
-CFLAGS 		= -g # -Wall
+CFLAGS 		= -g -Wno-narrowing# -Wall
 LIB 		=
 
 SRCDIR		= src
+INTDIR 		= interpreter
+CTLDIR		= controller
 BUILDDIR	= build
 BINDIR		= $(BUILDDIR)/bin
-TARGET 		= interprete
 
 SRCEXT 		= cpp
-SOURCES		= $(shell find $(SRCDIR) -type f -name '*.$(SRCEXT)')
-OBJECTS 	= $(SOURCES:$(SRCDIR)/%.$(SRCEXT)=$(BUILDDIR)/%.o)
+SRCINT 		= $(shell find $(SRCDIR)/$(INTDIR) -maxdepth 1 -type f -name '*.$(SRCEXT)')
+SRCCTL 		= $(shell find $(SRCDIR)/$(CTLDIR) -maxdepth 1 -type f -name '*.$(SRCEXT)')
 
-all: directories $(BINDIR)/$(TARGET)
+OBJINT		= $(SRCINT:$(SRCDIR)/%.$(SRCEXT)=$(BUILDDIR)/%.o)
+OBJCTL		= $(SRCCTL:$(SRCDIR)/%.$(SRCEXT)=$(BUILDDIR)/%.o)
 
-$(BINDIR)/$(TARGET): $(OBJECTS)
-	$(CXX) $(OBJECTS) -o $@
+all: interewe controlewe
 
-$(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
+interewe: directories $(BINDIR)/interewe
+
+controlewe: directories $(BINDIR)/controlewe
+
+$(BINDIR)/interewe: $(OBJINT)
+	$(CXX) $(CFLAGS) $^ -o $@
+
+$(BINDIR)/controlewe: $(OBJCTL)
+	$(CXX) $(CFLAGS) $^ -o $@ -lrt
+
+$(BUILDDIR)/$(INTDIR)/%.o: $(SRCDIR)/$(INTDIR)/%.$(SRCEXT)
 	$(CXX) $(CFLAGS) -c $< -o $@
 
-file: file.o
+$(BUILDDIR)/$(CTLDIR)/%.o: $(SRCDIR)/$(CTLDIR)/%.$(SRCEXT)
+	$(CXX) $(CFLAGS) -c $< -o $@
+
+mew: mew.o
 	$(CXX) -o $@ $^
 
-file.o: file.cpp
-	$(CXX) -c $^ -Wno-narrowing
+mew.o: src/files/fileMew.cpp
+	$(CXX) -c $^ $(CFLAGS) -o $@
+
+bew: bew.o
+
+bew.o: src/files/fileBew.cpp
+	$(CXX) $(CFLAGS) -o $@ $^
 
 directories:
-	@mkdir -p $(BUILDDIR)
+	@mkdir -p $(BUILDDIR)/$(INTDIR)
+	@mkdir -p $(BUILDDIR)/$(CTLDIR)
 	@mkdir -p $(BINDIR) 
 
 clean:
-	@echo "Cleaning..."
-	$(RM) -r $(BUILDDIR) $(TARGET)
+	$(RM) -r $(BUILDDIR)
 
 .PHONY: clean

@@ -25,7 +25,6 @@
 *.la
 *.a
 *.lib
-*.bew
 
 # Executables
 *.exe
@@ -36,3 +35,7 @@
 examples
 .vscode
 build
+
+# Ewe files
+*.mew
+*.bew
