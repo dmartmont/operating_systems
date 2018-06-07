@@ -13,8 +13,8 @@
 Memory::Memory(char* newName, int size, std::vector<Segment> segments) {
     name = newName;
     pMem = init(name, size);
-    // std::cout << segments.size() << endl;
-    // create_mmu(segments);
+    std::cout << segments.size() << std::endl;
+    create_mmu(segments);
 
     if ((void*) pMem != (void*) -1) {
         std::cout << "Memory succesfully abierta" << std::endl;
@@ -50,6 +50,10 @@ int* Memory::init(char* name, int size) {
 void Memory::create_mmu(std::vector<Segment> segments) {
     // for (int i = 0; i < 6; ++i) {
     //     mmu->table.insert(std::pair<int, Segment>(i, segments[i]));
+    // }
+
+    // for (auto elem: mmu->table) {
+    //     std::cout << elem.first << std::endl;
     // }
 }
 

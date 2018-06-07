@@ -175,9 +175,9 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < 6; ++i) {
         int segment = *configMem;
 
-        Segment* segmentObj;
+        struct Segment segmentObj;
 
-        segmentObj->base = (segment >> 16);
+        segmentObj.base = (segment >> 16);
         int limit = ((segment << 16) >> 16);
 
         if(i == 2 || i == 4) {
@@ -186,9 +186,9 @@ int main(int argc, char* argv[]) {
             limit <<= 2;
         }
 
-        segmentObj->limit = limit;
+        segmentObj.limit = limit;
 
-        segments.push_back(*segmentObj); 
+        segments.push_back(segmentObj); 
     }
 
     Memory* memoria = new Memory(memName, memSize, segments);
