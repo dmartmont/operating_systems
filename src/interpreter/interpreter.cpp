@@ -3,18 +3,46 @@
 #include <fstream>
 #include <string.h>
 #include <vector>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "decoder.cpp"
+#include "memory.h"
 
 using namespace std;
 
+int* open_shared_memory(char* name, int size) {
+    int shm = shm_open(name, O_RDWR , 0600);
+
+    if (shm == -1) {
+        cerr << "Failed to open shared memory " << name << endl;
+        return (int*)-1;
+    }
+
+    off_t size_mem = (off_t) size;
+
+    char* pMem = static_cast<char*>(mmap(NULL, size_mem, PROT_READ | PROT_WRITE,
+                                        MAP_SHARED, shm, 0));
+
+    if ((void *) pMem == (void *) -1) { 
+        cerr << "Problems with memory map ("
+            << errno << ") "
+            << strerror(errno)
+            << endl;
+        return (int*)-1;
+    }
+    return (int*)pMem;
+}
+
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        cout << "Usage: " << argv[0] << " <bewfile>" << endl;
+    if (argc < 3) {
+        cout << "Usage: " << argv[0] << " <nommemcom> <bewfile>" << endl;
         return EXIT_FAILURE;
     }
 
-    char* filename = argv[1];
+    char* memName = argv[1];
+    char* filename = argv[2];
     ifstream is;
     size_t size;
 
@@ -135,6 +163,35 @@ int main(int argc, char* argv[]) {
             deco.conditionalJump(instruction);
         }
     }
+
+    int* configMem = open_shared_memory((char*)"config", 28);
+
+    // Size of shared memory
+    int memSize = *configMem;
+    configMem += 1;
+
+    vector<Segment> segments;
+
+    for (int i = 0; i < 6; ++i) {
+        int segment = *configMem;
+
+        Segment* segmentObj;
+
+        segmentObj->base = (segment >> 16);
+        int limit = ((segment << 16) >> 16);
+
+        if(i == 2 || i == 4) {
+            limit = limit + (4 - limit % 4);
+        } else {
+            limit <<= 2;
+        }
+
+        segmentObj->limit = limit;
+
+        segments.push_back(*segmentObj); 
+    }
+
+    Memory* memoria = new Memory(memName, memSize, segments);
 
     return EXIT_SUCCESS;
 }

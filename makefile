@@ -22,7 +22,7 @@ interewe: directories $(BINDIR)/interewe
 controlewe: directories $(BINDIR)/controlewe
 
 $(BINDIR)/interewe: $(OBJINT)
-	$(CXX) $(CFLAGS) $^ -o $@
+	$(CXX) $(CFLAGS) $^ -o $@ -lrt
 
 $(BINDIR)/controlewe: $(OBJCTL)
 	$(CXX) $(CFLAGS) $^ -o $@ -lrt
@@ -34,15 +34,16 @@ $(BUILDDIR)/$(CTLDIR)/%.o: $(SRCDIR)/$(CTLDIR)/%.$(SRCEXT)
 	$(CXX) $(CFLAGS) -c $< -o $@
 
 mew: mew.o
-	$(CXX) -o $@ $^
+	$(CXX) $^ -o $@
 
 mew.o: src/files/fileMew.cpp
 	$(CXX) -c $^ $(CFLAGS) -o $@
 
 bew: bew.o
+	$(CXX) $^ -o $@
 
 bew.o: src/files/fileBew.cpp
-	$(CXX) $(CFLAGS) -o $@ $^
+	$(CXX) -c $^ $(CFLAGS) -o $@
 
 directories:
 	@mkdir -p $(BUILDDIR)/$(INTDIR)

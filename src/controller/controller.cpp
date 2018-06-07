@@ -13,7 +13,7 @@
 
 using namespace std;
 
-int* create_memory(char* name) {
+int* create_memory(char* name, int size) {
     int shm = shm_open(name, O_CREAT | O_RDWR | O_EXCL, 0600);
 
     if (shm == -1) {
@@ -21,7 +21,7 @@ int* create_memory(char* name) {
         return (int*)-1;
     }
 
-    off_t size_mem = 1000;
+    off_t size_mem = size;
 
     if (ftruncate(shm, size_mem) == -1) {
         cerr << "Problems with memory size" << endl;
@@ -45,8 +45,6 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    int* pMem = create_memory(argv[1]);
-
     char* filename = argv[2];
     ifstream is;
     size_t size;
@@ -65,21 +63,27 @@ int main(int argc, char* argv[]) {
     is.read(inputData, size);
     inputData[size] = '\0';
 
-    int* data = (int *)inputData;
+    int* data = (int*)inputData;
+
+    int* final_segment = data + 5;
+    int final_base = (*final_segment >> 16) << 2;
+    int final_limit = (*final_segment << 16) >> 16;
+    int final_size = final_base + final_limit;
+
+    int* pMem = create_memory(argv[1], final_size);
+    int* confMem = create_memory((char*)"config", 28);
+
+    *confMem = final_size;
+    confMem = confMem + 1;
 
     for (int i = 0; i < 6; ++i) {
         int* segment = data + i;
 
-        int base  = (*segment >> 16) << 2;
-        int limit = ((*segment << 16) >> 16);
+        *(confMem + i) = *segment;
+    }
 
-        if(i == 2 || i == 4) {
-            limit = limit + (4 - limit % 4);
-        } else {
-            limit <<= 2;
-        }
-
-        cout << "Base: " << hex << base << " Limit: " << hex << limit << endl;
+    for (int i = 0; i < size; ++i) {
+        *(pMem + i) = *(data + i);
     }
     
     return EXIT_SUCCESS;
