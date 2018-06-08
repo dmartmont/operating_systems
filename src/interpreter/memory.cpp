@@ -52,13 +52,13 @@ void Memory::create_mmu(std::vector<Segment> segments) {
     }
 }
 
-void Memory::writeChar(int segment, char* offset, char* value) {
+void Memory::writeChar(int segment, char* offset, char* value) { // Ésto no debería recibir un char en vez de char*?
     int movement = strtol(offset, nullptr, 16);
     int real = mmu.getPositionReal(segment, movement);
 
 }
 
-char* Memory::readChar(int segment, char* offset) {
+char* Memory::readChar(int segment, char* offset) { // Ésto no debería returnar un char en vez de un char*?
     int movement = strtol(offset, nullptr, 16);
     int real = mmu.getPositionReal(segment, movement);
     return (char*)-1;
