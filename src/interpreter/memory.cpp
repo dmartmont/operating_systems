@@ -13,7 +13,6 @@
 Memory::Memory(char* newName, int size, std::vector<Segment> segments) {
     name = newName;
     pMem = init(name, size);
-    std::cout << segments.size() << std::endl;
     create_mmu(segments);
 
     if ((void*) pMem != (void*) -1) {
@@ -48,27 +47,42 @@ int* Memory::init(char* name, int size) {
 }
 
 void Memory::create_mmu(std::vector<Segment> segments) {
-    // for (int i = 0; i < 6; ++i) {
-    //     mmu->table.insert(std::pair<int, Segment>(i, segments[i]));
-    // }
-
-    // for (auto elem: mmu->table) {
-    //     std::cout << elem.first << std::endl;
-    // }
+    for (int i = 0; i < 6; ++i) {
+        mmu.table.insert(std::pair<int, struct Segment>(i, segments[i]));
+    }
 }
 
-        // void writeChar(int segment, char* val) {
+void Memory::writeChar(int segment, char* offset, char* value) {
+    int movement = strtol(offset, nullptr, 16);
+    int real = mmu.getPositionReal(segment, movement);
 
-        // }
-        
-        // char* readChar(int segment, char* val) {
-        //     return (char*)-1;
-        // }
+}
 
-        // void writeInt(int segment, char* val) {
+char* Memory::readChar(int segment, char* offset) {
+    int movement = strtol(offset, nullptr, 16);
+    int real = mmu.getPositionReal(segment, movement);
+    return (char*)-1;
+}
 
-        // }
-        
-        // int readInt(int segment, char* val) {
-        //     return -1;
-        // }
+void Memory::writeInt(int segment, char* offset, int value) {
+    int movement = strtol(offset, nullptr, 16);
+    int real = mmu.getPositionReal(segment, movement);
+
+    if (real == -1) {
+        std::cerr << "Wrong memory position writing int" << std::endl;
+    } else {
+        *(pMem + real) = value;
+    }
+}
+
+int Memory::readInt(int segment, char* offset) {
+    int movement = strtol(offset, nullptr, 16);
+    int real = mmu.getPositionReal(segment, movement);
+
+    if (real == -1) {
+        std::cerr << "Wrong memory position reading int" << std::endl;
+        return -1;
+    }
+
+    return *(pMem + real);
+}
