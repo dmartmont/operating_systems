@@ -203,14 +203,66 @@ void Interprete::moveValueInMemory(std::string instruction) {
     const char* type         = instruction.substr(4,1).c_str();
     const char*  memrefdst    = instruction.substr(5, 15).c_str();
     const char*  memrefsrc    = instruction.substr(20, 15).c_str();
+    if(*type == '1') {
+        int value = memoria->readInt(DATANUM, (char*)memrefsrc);
+        memoria->writeInt(DATANUM, (char*)memrefdst, value);
+    } else {
+        char* charactual;
+        int i = 0;
+        do {
+            charactual = memoria->readChar(DATASTR, (char*)memrefsrc); //Cambiar esto??
+            memoria->writeChar(DATASTR, (char*)(memrefdst+i), charactual);
+        } while(charactual != 0);
+    }
 }
 
 void Interprete::arithmeticOp(std::string instruction) {
-    const char*  operation    = instruction.substr(4, 3).c_str();
+    const std::string  operation    = instruction.substr(4, 3);
     const char*  flag         = instruction.substr(7, 1).c_str();
     const char*  memrefdst    = instruction.substr(8, 15).c_str();
     const char*  memrefop1    = instruction.substr(24, 15).c_str();
     const char*  memrefop2    = instruction.substr(39, 15).c_str();
+    if (*flag == '1') {
+        int op1 = memoria->readInt(DATANUM, (char*)memrefop1);
+        int op2 = memoria->readInt(DATANUM, (char*)memrefop2);
+        int resultado;
+        if(operation == "000") {
+            resultado = op1+op2;
+        }
+        else if(operation == "001") {
+            resultado = op1-op2;
+        }
+        else if(operation == "010") {
+            resultado = op1*op2;
+        }
+        else if(operation == "011") {
+            resultado = op1/op2;
+        }
+        else if(operation == "100") {
+            resultado = op1%op2;
+        }
+        memoria->writeInt(DATANUM, (char*)memrefdst, resultado);
+    } else {
+        char op1 = *memoria->readChar(DATASTR, (char*)memrefop1);
+        char op2 = *memoria->readChar(DATASTR, (char*)memrefop2);
+        char resultado;
+        if(operation == "000") {
+            resultado = op1+op2;
+        }
+        else if(operation == "001") {
+            resultado = op1-op2;
+        }
+        else if(operation == "010") {
+            resultado = op1*op2;
+        }
+        else if(operation == "011") {
+            resultado = op1/op2;
+        }
+        else if(operation == "100") {
+            resultado = op1%op2;
+        }
+        memoria->writeChar(DATASTR, (char*)memrefdst, resultado);
+    }
 }
 
 void Interprete::moveValueInMemoryInteger(std::string instruction) {
@@ -218,6 +270,14 @@ void Interprete::moveValueInMemoryInteger(std::string instruction) {
     const char*  memrefdst    = instruction.substr(5, 15).c_str();
     const char*  memrefsrc    = instruction.substr(20, 15).c_str();
     const char*  integer      = instruction.substr(35, 15).c_str();
+    int offset = memoria->readInt(LITNUM, (char*)integer);
+    if(*type == '1') {
+        int value = memoria->readInt(DATANUM, (char*)(memrefsrc+offset));
+        memoria->writeInt(DATANUM, (char*)memrefdst, value);
+    } else {
+        char* value = memoria->readChar(DATASTR, (char*)(memrefsrc+offset));
+        memoria->writeChar(DATASTR, (char*)memrefdst, value);
+    }
 }
 
 void Interprete::saveDisplaced(std::string instruction) {
@@ -225,6 +285,14 @@ void Interprete::saveDisplaced(std::string instruction) {
     const char* memrefdst    = instruction.substr(5, 15).c_str();
     const char* integer      = instruction.substr(20, 15).c_str();
     const char* memrefsrc    = instruction.substr(35, 15).c_str();
+    int offset = memoria->readInt(LITNUM, (char*)integer);
+    if(*type == '1') {
+        int value = memoria->readInt(DATANUM, (char*)memrefsrc);
+        memoria->writeInt(DATANUM, (char*)(memrefdst+offset), value);
+    } else {
+        char* value = memoria->readChar(DATASTR, (char*)memrefsrc);
+        memoria->writeChar(DATASTR, (char*)(memrefdst+offset), value);
+    }
 }
 
 void Interprete::readStr(std::string instruction) {
