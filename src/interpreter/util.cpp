@@ -1,10 +1,10 @@
-#include <sys/mman.h>
-#include <sys/stat.h>
+#include <iostream>
 #include <fcntl.h>
 #include <fstream>
 #include <ostream>
-#include <iostream>
 #include <string.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 #include "util.h"
 
@@ -32,22 +32,25 @@ int* open_shared_memory(char* name, int size) {
 }
 
 char* open_file(char* name) {
-    std::ifstream is;
+    std::ifstream is (name, std::ios::binary | std::ios::in | std::ios::ate);
     size_t size;
+    char* inputData;
 
-    is.open(name, std::ios::binary | std::ios::in | std::ios::ate);
+    if (is) {
+        size = is.tellg();
+        inputData = new char[size];
 
-    if (!is.is_open()) {
-        std::cerr << "Failed to open " << name << std::endl;
-        return (char*)-1;
+        is.seekg(0, std::ios::beg);
+        is.read(inputData, size);
+
+        if (!is) std::cout << "error reading file, only read " << is.gcount() << std::endl;
+
+        is.close();
+
+        inputData[size] = '\0';
+
+        return inputData;
     }
 
-    size = is.tellg();
-    char* inputData = new char[size];
-
-    is.seekg(0, std::ios::beg);
-    is.read(inputData, size);
-    inputData[size] = '\0';
-
-    return inputData;
+    return (char*)-1;
 }

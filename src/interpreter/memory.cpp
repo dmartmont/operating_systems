@@ -52,31 +52,50 @@ void Memory::create_mmu(std::vector<Segment> segments) {
     }
 }
 
-void Memory::writeChar(int segment, char* offset, char value) { // Ésto no debería recibir un char en vez de char*?
+void Memory::writeChar(int segment, char* offset, char value) {
     int movement = strtol(offset, nullptr, 16);
     int real = mmu.getPositionReal(segment, movement);
 
+    if (real == -1) {
+        std::cerr << "Wrong memory position writing char" << std::endl;
+    } else {
+        *(pMem + real) = value;
+    }
 }
 
-char Memory::readChar(int segment, char* offset) { // Ésto no debería returnar un char en vez de un char*?
+char Memory::readChar(int segment, char* offset) {
     int movement = strtol(offset, nullptr, 16);
     int real = mmu.getPositionReal(segment, movement);
-    return (char)-1;
+    if (real == -1) {
+        std::cerr << "Wrong memory position reading char" << std::endl;
+        return -1;
+    }
+
+    std::cout << "Read int in segment " << segment << " " << *(pMem + real) << std::endl;
+
+    return *(pMem + real);
 }
 
 void Memory::writeInt(int segment, char* offset, int value) {
     int movement = strtol(offset, nullptr, 16);
+
+    movement <<= 2;
+
     int real = mmu.getPositionReal(segment, movement);
 
     if (real == -1) {
         std::cerr << "Wrong memory position writing int" << std::endl;
     } else {
         *(pMem + real) = value;
+        std::cout << "Wrote int in segment " << segment << " " << *(pMem + real) << std::endl;
     }
 }
 
 int Memory::readInt(int segment, char* offset) {
     int movement = strtol(offset, nullptr, 16);
+
+    movement <<= 2;
+
     int real = mmu.getPositionReal(segment, movement);
 
     if (real == -1) {

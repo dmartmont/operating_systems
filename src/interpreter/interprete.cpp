@@ -8,6 +8,7 @@
 #include "util.h"
 
 Interprete::Interprete(char* filename, char* memName){
+    program_counter = 0;
     init(filename);
 
     int* configMem = open_shared_memory((char*)"config", 28);
@@ -91,6 +92,7 @@ void Interprete::init(char* filename) {
 
 void Interprete::run() {
     for(std::vector<std::string>::size_type i = 0; i <= instructions.size(); ++i) {
+
         std::string instruction = instructions[i];
         
         // 8 bits instructions
@@ -144,6 +146,8 @@ void Interprete::run() {
         else if(instruction.substr(0, 4) == "1101") {
             conditionalJump(instruction);
         }
+
+        ++program_counter;
     }
 
 
@@ -159,6 +163,7 @@ void Interprete::breakInst() {
 // 32 bits instructions
 void Interprete::memrefToPc(std::string instruction) {
     const char* memref = instruction.substr(4, 15).c_str();
+    program_counter = memoria->readInt(LITNUM, (char*)memref);
 }
 
 void Interprete::readInt(std::string instruction) {
@@ -167,6 +172,8 @@ void Interprete::readInt(std::string instruction) {
 
 void Interprete::writeInt(std::string instruction) {
     const char* memref = instruction.substr(4, 15).c_str();
+    int res = memoria->readInt(DATANUM, (char*)memref);
+    std::cout << "WriteInt: " << res << std::endl;
 }
 
 void Interprete::writeStr(std::string instruction) {
@@ -196,6 +203,9 @@ void Interprete::moveStr(std::string instruction) {
 void Interprete::saveNumPlusPC(std::string instruction) {
     const char*  memref = instruction.substr(4, 15).c_str();
     const char*  integer = instruction.substr(19, 15).c_str();
+    int value = memoria->readInt(LITNUM, (char*)integer);
+    value = program_counter + value;
+    memoria->writeInt(DATANUM, (char*)memref, value);
 }
 
 void Interprete::moveValueInMemory(std::string instruction) {

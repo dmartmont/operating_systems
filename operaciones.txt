@@ -25,7 +25,11 @@
         0 -> transferencia en DATASTR
         1 -> transferencia en DATANUM
 0101(4) <op>(3) <flagP>(1) <memref_dst>(15) <memref_op1>(15) <memref_op2>(15) <pad>(11)
-
+        000 -> Suma
+        001 -> Resta
+        010 -> Multiplicacion
+        011 -> Division
+        100 -> Residuo
 
 2.2.7 Guarda en el memref de destino el valor de la posicion memref_src+integer
 0110(4) <flag>(1) <memref_dst>(15) <memref_src>(15) <integer>(15) <pad>(14)

@@ -7,6 +7,7 @@ class Interprete {
     private:
         std::vector<std::string> instructions;
         Memory* memoria;
+        int program_counter;
         const int MEMG = std::stoi("000");
         const int LITNUM = std::stoi("001");
         const int LITSTR = std::stoi("010");
