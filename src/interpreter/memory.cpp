@@ -59,7 +59,7 @@ void Memory::writeChar(int segment, char* offset, char value) {
     if (real == -1) {
         std::cerr << "Wrong memory position writing char" << std::endl;
     } else {
-        *(pMem + real) = value;
+        *(pMem + (real >> 2)) = value;
     }
 }
 

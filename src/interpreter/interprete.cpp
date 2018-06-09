@@ -1,5 +1,6 @@
 #include <bitset>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <string.h>
 #include <vector>
@@ -42,12 +43,31 @@ Interprete::Interprete(char* filename, char* memName){
 }
 
 void Interprete::init(char* filename) {
-    char* inputData = open_file(filename);
-    size_t size = strlen(inputData);
+    std::ifstream is (filename, std::ios::binary | std::ios::in | std::ios::ate);
+
+    size_t size;
+    char* inputData;
+
+    if (is) {
+        size = is.tellg();
+        inputData = new char[size];
+
+        is.seekg(0, std::ios::beg);
+        is.read(inputData, size);
+
+        if (!is) std::cout << "error reading file, only read " << is.gcount() << std::endl;
+
+        is.close();
+
+        inputData[size] = '\0';
+    }
 
     size_t i = 0;
+
     while (i < size) {
         char opcode = (inputData[i]);
+
+        std::cout << std::bitset<8>(opcode) << std::endl;
 
         opcode = (opcode >> 4) & 0x0F;
 

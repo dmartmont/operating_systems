@@ -13,6 +13,7 @@ struct MMU {
     std::map<int, Segment> table;
     int getPositionReal(int segmentNumber, int movement) {
         Segment segment = table[segmentNumber];
+        std::cout << "Segment: " << segment.base << " " << segment.limit << std::endl;
         if (segment.isInside(movement)) {
             return segment.base + movement;
         } else {
