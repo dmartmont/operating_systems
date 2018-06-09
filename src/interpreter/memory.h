@@ -34,6 +34,6 @@ class Memory {
         Memory(char* newName, int size, std::vector<Segment> segments);
         int readInt(int segment, char* offset);
         void writeInt(int segment, char* offset, int value);
-        char* readChar(int segment, char* offset);
-        void writeChar(int segment, char* offset, char* value);
+        char readChar(int segment, char* offset);
+        void writeChar(int segment, char* offset, char value);
 };

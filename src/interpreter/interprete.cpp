@@ -154,7 +154,6 @@ void Interprete::haltInst() {
 }
 
 void Interprete::breakInst() {
-    break;
 }
 
 // 32 bits instructions
@@ -190,7 +189,7 @@ void Interprete::moveNum(std::string instruction) {
 void Interprete::moveStr(std::string instruction) {
     const char*  memref = instruction.substr(4, 15).c_str();
     const char*  strRef = instruction.substr(19, 15).c_str();
-    char* value = memoria->readChar(LITSTR, (char*)memref);
+    char value = memoria->readChar(LITSTR, (char*)memref);
     memoria->writeChar(DATASTR, (char*)strRef, value);
 }
 
@@ -207,12 +206,12 @@ void Interprete::moveValueInMemory(std::string instruction) {
         int value = memoria->readInt(DATANUM, (char*)memrefsrc);
         memoria->writeInt(DATANUM, (char*)memrefdst, value);
     } else {
-        char* charactual;
+        char charActual;
         int i = 0;
         do {
-            charactual = memoria->readChar(DATASTR, (char*)memrefsrc); //Cambiar esto??
-            memoria->writeChar(DATASTR, (char*)(memrefdst+i), charactual);
-        } while(charactual != 0);
+            charActual = memoria->readChar(DATASTR, (char*)memrefsrc);
+            memoria->writeChar(DATASTR, (char*)(memrefdst+i), charActual);
+        } while(charActual != '\0');
     }
 }
 
@@ -243,8 +242,8 @@ void Interprete::arithmeticOp(std::string instruction) {
         }
         memoria->writeInt(DATANUM, (char*)memrefdst, resultado);
     } else {
-        char op1 = *memoria->readChar(DATASTR, (char*)memrefop1);
-        char op2 = *memoria->readChar(DATASTR, (char*)memrefop2);
+        char op1 = memoria->readChar(DATASTR, (char*)memrefop1);
+        char op2 = memoria->readChar(DATASTR, (char*)memrefop2);
         char resultado;
         if(operation == "000") {
             resultado = op1+op2;
@@ -275,7 +274,7 @@ void Interprete::moveValueInMemoryInteger(std::string instruction) {
         int value = memoria->readInt(DATANUM, (char*)(memrefsrc+offset));
         memoria->writeInt(DATANUM, (char*)memrefdst, value);
     } else {
-        char* value = memoria->readChar(DATASTR, (char*)(memrefsrc+offset));
+        char value = memoria->readChar(DATASTR, (char*)(memrefsrc+offset));
         memoria->writeChar(DATASTR, (char*)memrefdst, value);
     }
 }
@@ -290,7 +289,7 @@ void Interprete::saveDisplaced(std::string instruction) {
         int value = memoria->readInt(DATANUM, (char*)memrefsrc);
         memoria->writeInt(DATANUM, (char*)(memrefdst+offset), value);
     } else {
-        char* value = memoria->readChar(DATASTR, (char*)memrefsrc);
+        char value = memoria->readChar(DATASTR, (char*)memrefsrc);
         memoria->writeChar(DATASTR, (char*)(memrefdst+offset), value);
     }
 }
