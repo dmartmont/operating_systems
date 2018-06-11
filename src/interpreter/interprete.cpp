@@ -1,6 +1,9 @@
 #include <bitset>
+#include <cstring>
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string>
 #include <string.h>
 #include <vector>
@@ -67,8 +70,6 @@ void Interprete::init(char* filename) {
     while (i < size) {
         char opcode = (inputData[i]);
 
-        std::cout << std::bitset<8>(opcode) << std::endl;
-
         opcode = (opcode >> 4) & 0x0F;
 
         // 8 bits instructions
@@ -111,7 +112,7 @@ void Interprete::init(char* filename) {
 }
 
 void Interprete::run() {
-    for(std::vector<std::string>::size_type i = 0; i <= instructions.size(); ++i) {
+    for(std::vector<std::string>::size_type i = 0; i < instructions.size(); ++i) {
 
         std::string instruction = instructions[i];
         
@@ -182,156 +183,350 @@ void Interprete::breakInst() {
 
 // 32 bits instructions
 void Interprete::memrefToPc(std::string instruction) {
-    const char* memref = instruction.substr(4, 15).c_str();
-    program_counter = memoria->readInt(LITNUM, (char*)memref);
+    char* memref = new char[15];
+    std::strcpy(memref, instruction.substr(4, 15).c_str());
+    program_counter = memoria->readInt(LITNUM, memref);
+
+    std::cout << "2.2.4 memrefToPC: memref -> " << memref << std::endl;    
 }
 
 void Interprete::readInt(std::string instruction) {
-    const char* memref = instruction.substr(4, 15).c_str();
+    char* memref = new char[15];
+    std::strcpy(memref, instruction.substr(4, 15).c_str());
+
+    int value;
+    std::cin >> value;
+    memoria->writeInt(DATANUM, memref, value);
+
+    std::cout << "2.2.9 ReadInt: memref -> " << memref << std::endl;    
 }
 
 void Interprete::writeInt(std::string instruction) {
-    const char* memref = instruction.substr(4, 15).c_str();
-    int res = memoria->readInt(DATANUM, (char*)memref);
-    std::cout << "WriteInt: " << res << std::endl;
+    char* memref = new char[15];
+    std::strcpy(memref, instruction.substr(4, 15).c_str());
+    int res = memoria->readInt(DATANUM, memref);
+
+    std::cout << "2.2.10 WriteInt: memref -> " << memref << std::endl;
+    std::cout << "2.2.10 WriteInt result: " << std::dec << res << std::endl;
 }
 
 void Interprete::writeStr(std::string instruction) {
-    const char* memref = instruction.substr(4, 15).c_str();
+    char* memref = new char[15];
+    std::strcpy(memref, instruction.substr(4, 15).c_str());
+
+    int memrefVal = strtol(memref, nullptr, 2);
+    char value;
+    std::string result;
+    int i = 0;
+    int j = 0;
+
+    do {
+        int newMemRef = memrefVal + (((j * 4) + (4 - (i % 4))) - 1);
+        value = memoria->readChar(DATASTR, newMemRef);
+
+        result.push_back(value);
+
+        i++;
+        if (i % 4 == 0) j++;
+    } while (value);
+
+    std::cout << "2.2.12 WriteStr: memref -> " << memref << std::endl;
+    std::cout << "2.2.12 WriteStr result: " << result << std::endl;
 }
 
 void Interprete::goTo(std::string instruction) {
-    const char* address = instruction.substr(4, 15).c_str();
+    char* memref = new char[15];
+    std::strcpy(memref, instruction.substr(4, 15).c_str());
+
+    program_counter = memoria->readInt(LITNUM, memref);
+
+    std::cout << "2.2.13 goTo: memref -> " << memref << std::endl;
 }
 
 // 64 bits instructions
 
 void Interprete::moveNum(std::string instruction) {
-    const char* memref = (instruction.substr(4, 15)).c_str();
-    const char* integer = (instruction.substr(19, 15)).c_str();
-    int value = memoria->readInt(LITNUM, (char*)memref);
-    memoria->writeInt(DATANUM, (char*)integer, value);
+    char* memref = new char[15];
+    char* integer = new char[15];
+    std::strcpy(memref, instruction.substr(4, 15).c_str());
+    std::strcpy(integer, instruction.substr(19, 15).c_str());
+
+    std::cout << "2.2.1 MoveNum: memref memrefinteger -> " << memref << " " << integer << std::endl;
+
+    int value = memoria->readInt(LITNUM, integer);
+    memoria->writeInt(DATANUM, memref, value);
 }
 
 void Interprete::moveStr(std::string instruction) {
-    const char*  memref = instruction.substr(4, 15).c_str();
-    const char*  strRef = instruction.substr(19, 15).c_str();
-    char value = memoria->readChar(LITSTR, (char*)memref);
-    memoria->writeChar(DATASTR, (char*)strRef, value);
+    char* memref = new char[15];
+    char* strRef = new char[15];
+    std::strcpy(memref, instruction.substr(4, 15).c_str());
+    std::strcpy(strRef, instruction.substr(19, 15).c_str());
+
+    std::cout << "2.2.2 MoveStr: memref memrefstring -> " << memref << " " << strRef << std::endl;
+    
+    int memRefVal = strtol(memref, nullptr, 2);
+    int strRefVal = strtol(strRef, nullptr, 2);
+    int i = 0;
+    int j = 0;
+    char value;
+   
+    do {
+        int newMemRef = memRefVal + (((j * 4) + (4 - (i % 4))) - 1);
+        int newStrRef = strRefVal + (((j * 4) + (4 - (i % 4))) - 1);
+
+        value = memoria->readChar(LITSTR, newStrRef);
+        memoria->writeChar(DATASTR, newMemRef, value);
+
+        i++;
+        if (i % 4 == 0) j++;
+    } while(value);
+    memoria->writeChar(DATASTR, strRefVal + i + 1, '\0');
 }
 
 void Interprete::saveNumPlusPC(std::string instruction) {
-    const char*  memref = instruction.substr(4, 15).c_str();
-    const char*  integer = instruction.substr(19, 15).c_str();
-    int value = memoria->readInt(LITNUM, (char*)integer);
+    char* memref = new char[15];
+    char* integer = new char[15];
+    std::strcpy(memref, instruction.substr(4, 15).c_str());
+    std::strcpy(integer, instruction.substr(19, 15).c_str());
+    int value = memoria->readInt(LITNUM, integer);
     value = program_counter + value;
-    memoria->writeInt(DATANUM, (char*)memref, value);
+    memoria->writeInt(DATANUM, memref, value);
+
+    std::cout << "2.2.3 saveNumPlusPC: memref memrefinteger -> " << memref << " " << integer << std::endl;
 }
 
 void Interprete::moveValueInMemory(std::string instruction) {
-    const char* type         = instruction.substr(4,1).c_str();
-    const char*  memrefdst    = instruction.substr(5, 15).c_str();
-    const char*  memrefsrc    = instruction.substr(20, 15).c_str();
-    if(*type == '1') {
-        int value = memoria->readInt(DATANUM, (char*)memrefsrc);
-        memoria->writeInt(DATANUM, (char*)memrefdst, value);
+    char* type = new char[1];
+    char* memrefdst = new char[15];
+    char* memrefsrc = new char[15];
+    std::strcpy(type, instruction.substr(4, 1).c_str());
+    std::strcpy(memrefdst, instruction.substr(5, 15).c_str());
+    std::strcpy(memrefsrc, instruction.substr(20, 15).c_str());
+
+    std::cout << "2.2.5 MoveNum: type memrefdst memrefsrc -> " << type << " " << memrefdst << " " << memrefsrc << std::endl;
+
+    if(type == "1") {
+        int value = memoria->readInt(DATANUM, memrefsrc);
+        memoria->writeInt(DATANUM, memrefdst, value);
     } else {
         char charActual;
+        int memSrcInt = strtol(memrefsrc, nullptr, 2);
+        int memDstInt = strtol(memrefdst, nullptr, 2);
         int i = 0;
+        int j = 0;
         do {
-            charActual = memoria->readChar(DATASTR, (char*)memrefsrc);
-            memoria->writeChar(DATASTR, (char*)(memrefdst+i), charActual);
-        } while(charActual != '\0');
+            int newSrcRef = memSrcInt + (((j * 4) + (4 - (i % 4))) - 1);
+            int newDstRef = memDstInt + (((j * 4) + (4 - (i % 4))) - 1);
+
+            charActual = memoria->readChar(DATASTR, newSrcRef);
+            memoria->writeChar(DATASTR, newDstRef, charActual);
+
+            i++;
+            if (i % 4 == 0) j++;
+        } while (charActual);
     }
+    
 }
 
 void Interprete::arithmeticOp(std::string instruction) {
-    const std::string  operation    = instruction.substr(4, 3);
-    const char*  flag         = instruction.substr(7, 1).c_str();
-    const char*  memrefdst    = instruction.substr(8, 15).c_str();
-    const char*  memrefop1    = instruction.substr(24, 15).c_str();
-    const char*  memrefop2    = instruction.substr(39, 15).c_str();
-    if (*flag == '1') {
-        int op1 = memoria->readInt(DATANUM, (char*)memrefop1);
-        int op2 = memoria->readInt(DATANUM, (char*)memrefop2);
+    char* operation = new char[3];
+    char* flag = new char[1];
+    char* memrefdst = new char[15];
+    char* memrefop1 = new char[15];
+    char* memrefop2 = new char[15];
+    std::strcpy(operation, instruction.substr(4, 3).c_str());
+    std::strcpy(flag, instruction.substr(7, 1).c_str());
+    std::strcpy(memrefdst, instruction.substr(8, 15).c_str());
+    std::strcpy(memrefop1, instruction.substr(23, 15).c_str());
+    std::strcpy(memrefop2, instruction.substr(38, 15).c_str());
+
+    std::cout << "2.2.6 ArithmeticOp: op type memrefdst memrefop1 memrefop2 -> " 
+        << operation << " " 
+        << flag << " " 
+        << memrefdst << " " 
+        << memrefop1 << " " 
+        << memrefop2 << std::endl;
+
+    if (flag) {
+        int op1 = memoria->readInt(DATANUM, memrefop1);
+        int op2 = memoria->readInt(DATANUM, memrefop2);
         int resultado;
         if(operation == "000") {
-            resultado = op1+op2;
+            resultado = op1 + op2;
         }
         else if(operation == "001") {
-            resultado = op1-op2;
+            resultado = op1 - op2;
         }
         else if(operation == "010") {
-            resultado = op1*op2;
+            resultado = op1 * op2;
         }
         else if(operation == "011") {
-            resultado = op1/op2;
+            resultado = op1 / op2;
         }
         else if(operation == "100") {
-            resultado = op1%op2;
+            resultado = op1 % op2;
         }
-        memoria->writeInt(DATANUM, (char*)memrefdst, resultado);
+        memoria->writeInt(DATANUM, memrefdst, resultado);
     } else {
-        char op1 = memoria->readChar(DATASTR, (char*)memrefop1);
-        char op2 = memoria->readChar(DATASTR, (char*)memrefop2);
+        char op1 = memoria->readChar(DATASTR, strtol(memrefop1, nullptr, 2));
+        char op2 = memoria->readChar(DATASTR, strtol(memrefop2, nullptr, 2));
         char resultado;
         if(operation == "000") {
-            resultado = op1+op2;
+            resultado = op1 + op2;
         }
         else if(operation == "001") {
-            resultado = op1-op2;
+            resultado = op1 - op2;
         }
         else if(operation == "010") {
-            resultado = op1*op2;
+            resultado = op1 * op2;
         }
         else if(operation == "011") {
-            resultado = op1/op2;
+            resultado = op1 / op2;
         }
         else if(operation == "100") {
-            resultado = op1%op2;
+            resultado = op1 % op2;
         }
-        memoria->writeChar(DATASTR, (char*)memrefdst, resultado);
+        memoria->writeChar(DATASTR, strtol(memrefdst, nullptr, 2), resultado);
     }
 }
 
 void Interprete::moveValueInMemoryInteger(std::string instruction) {
-    const char*  type         = instruction.substr(4,1).c_str();
-    const char*  memrefdst    = instruction.substr(5, 15).c_str();
-    const char*  memrefsrc    = instruction.substr(20, 15).c_str();
-    const char*  integer      = instruction.substr(35, 15).c_str();
-    int offset = memoria->readInt(LITNUM, (char*)integer);
-    if(*type == '1') {
-        int value = memoria->readInt(DATANUM, (char*)(memrefsrc+offset));
-        memoria->writeInt(DATANUM, (char*)memrefdst, value);
+    char* type = new char[1];
+    char* memrefdst = new char[15];
+    char* memrefsrc = new char[15];
+    char* integer = new char[15];
+    std::strcpy(type, instruction.substr(4, 1).c_str());
+    std::strcpy(memrefdst, instruction.substr(5, 15).c_str());
+    std::strcpy(memrefsrc, instruction.substr(20, 15).c_str());
+    std::strcpy(integer, instruction.substr(35, 15).c_str());
+
+    std::cout << "2.2.7 moveValueInMemoryInteger: type memrefdst memrefsrc memrefinteger -> " 
+        << type << " " 
+        << memrefdst << " "
+        << memrefsrc << " " 
+        << integer << std::endl;
+
+    int offset = memoria->readInt(LITNUM, integer);
+    if(type == "1") {
+        int value = memoria->readInt(DATANUM, (memrefsrc + offset));
+        memoria->writeInt(DATANUM, memrefdst, value);
     } else {
-        char value = memoria->readChar(DATASTR, (char*)(memrefsrc+offset));
-        memoria->writeChar(DATASTR, (char*)memrefdst, value);
+        char value = memoria->readChar(DATASTR, strtol(memrefsrc, nullptr, 2) + offset);
+        memoria->writeChar(DATASTR, strtol(memrefdst, nullptr, 2), value);
     }
 }
 
 void Interprete::saveDisplaced(std::string instruction) {
-    const char* type         = instruction.substr(4,1).c_str();
-    const char* memrefdst    = instruction.substr(5, 15).c_str();
-    const char* integer      = instruction.substr(20, 15).c_str();
-    const char* memrefsrc    = instruction.substr(35, 15).c_str();
-    int offset = memoria->readInt(LITNUM, (char*)integer);
-    if(*type == '1') {
-        int value = memoria->readInt(DATANUM, (char*)memrefsrc);
-        memoria->writeInt(DATANUM, (char*)(memrefdst+offset), value);
+    char* type = new char[1];
+    char* memrefdst = new char[15];
+    char* memrefsrc = new char[15];
+    char* integer = new char[15];
+    std::strcpy(type, instruction.substr(4, 1).c_str());
+    std::strcpy(memrefdst, instruction.substr(5, 15).c_str());
+    std::strcpy(integer, instruction.substr(20, 15).c_str());
+    std::strcpy(memrefsrc, instruction.substr(35, 15).c_str());
+
+    std::cout << "2.2.8 saveDisplaced: type memrefdst memrefsrc integer -> " 
+        << type << " "
+        << memrefdst << " " 
+        << memrefsrc << " "  
+        << integer << std::endl;
+
+    int offset = memoria->readInt(LITNUM, integer);
+    if(type == "1") {
+        int value = memoria->readInt(DATANUM, memrefsrc);
+        memoria->writeInt(DATANUM, (memrefdst + offset), value);
     } else {
-        char value = memoria->readChar(DATASTR, (char*)memrefsrc);
-        memoria->writeChar(DATASTR, (char*)(memrefdst+offset), value);
+        char value = memoria->readChar(DATASTR, strtol(memrefsrc, nullptr, 2));
+        memoria->writeChar(DATASTR, strtol(memrefdst, nullptr, 2) + offset, value);
     }
 }
 
 void Interprete::readStr(std::string instruction) {
-    const char* memrefdst    = instruction.substr(4, 15).c_str();
-    const char* memrefsize   = instruction.substr(19, 15).c_str();                
+    char* memrefdst    = new char[15];
+    char* memrefsize   = new char[15]; 
+    std::strcpy(memrefdst, instruction.substr(4, 15).c_str());
+    std::strcpy(memrefsize, instruction.substr(19, 15).c_str());
+
+    std::cout << "2.2.11 ReadStr: memrefdst memrefsize -> " << memrefdst << " " << memrefsize << std::endl;
+
+    char charActual;
+    int limite = memoria->readInt(LITNUM, memrefsize);
+    int memDstVal = strtol(memrefdst, nullptr, 2);
+    int i = 0;
+    int j = 0;
+
+    std::string cadena;
+    std::getline(std::cin, cadena);
+
+    for(char& c : cadena) {
+        if (c && i < limite) {
+            int newMemDst = memDstVal + (((j * 4) + (4 - (i % 4))) - 1);
+
+            memoria->writeChar(DATASTR, newMemDst, c);
+
+            i++;
+            if (i % 4 == 0) j++;
+        }
+    }
+    memoria->writeChar(DATASTR, memDstVal + i + 1, '\0');
 }
 
 void Interprete::conditionalJump(std::string instruction) {
-    const char* operation    = instruction.substr(4, 3).c_str();
-    const char* memref1    = instruction.substr(7, 15).c_str();
-    const char* memref2    = instruction.substr(22, 15).c_str();
-    const char* integer      = instruction.substr(37, 15).c_str();
+    char* operation = new char[3];
+    char* flag = new char[1];
+    char* memrefop1 = new char[15];
+    char* memrefop2 = new char[15];
+    char* integer = new char[15];
+    std::strcpy(operation, instruction.substr(4, 3).c_str());
+    std::strcpy(flag, instruction.substr(7, 1).c_str());
+    std::strcpy(memrefop1, instruction.substr(8, 15).c_str());
+    std::strcpy(memrefop2, instruction.substr(23, 15).c_str());
+    std::strcpy(integer, instruction.substr(38, 15).c_str());
+
+    std::cout << "2.2.14 ConditionalJump: op flag memrefop1 memrefop2 memrefinteger -> " 
+        << operation << " " 
+        << flag << " " 
+        << memrefop1 << " " 
+        << memrefop2 << " " 
+        << integer << std::endl;               
+
+    if (flag == "1") {
+        int op1 = memoria->readInt(DATANUM, memrefop1);
+        int op2 = memoria->readInt(DATANUM, memrefop2);
+        int value = memoria->readInt(LITNUM, integer);
+        int result;
+        if (operation == "000") {
+            program_counter = op1 >= op2 ? value : program_counter;
+        } else if(operation == "001") {
+            program_counter = op1 > op2 ? value : program_counter;
+        } else if (operation == "010") {
+            program_counter = op1 <= op2 ? value : program_counter;
+        } else if (operation == "011") {
+            program_counter = op1 < op2 ? value : program_counter;
+        } else if (operation == "100") {
+            program_counter = op1 == op2 ? value : program_counter;
+        } else if (operation == "101") {
+            program_counter = op1 != op2 ? value : program_counter;
+        }
+    } else {    
+        char op1 = memoria->readChar(DATASTR, strtol(memrefop1, nullptr, 2));
+        char op2 = memoria->readChar(DATASTR, strtol(memrefop2, nullptr, 2));
+        int value = memoria->readInt(LITNUM, integer);
+        char result;
+        if (operation == "000") {
+            program_counter = op1 >= op2 ? value : program_counter;
+        } else if(operation == "001") {
+            program_counter = op1 > op2 ? value : program_counter;
+        } else if (operation == "010") {
+            program_counter = op1 <= op2 ? value : program_counter;
+        } else if (operation == "011") {
+            program_counter = op1 < op2 ? value : program_counter;
+        } else if (operation == "100") {
+            program_counter = op1 == op2 ? value : program_counter;
+        } else if (operation == "101") {
+            program_counter = op1 != op2 ? value : program_counter;
+        }
+    }
 }

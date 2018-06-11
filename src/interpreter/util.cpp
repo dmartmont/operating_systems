@@ -30,27 +30,3 @@ int* open_shared_memory(char* name, int size) {
     }
     return (int*)pMem;
 }
-
-char* open_file(char* name) {
-    std::ifstream is (name, std::ios::binary | std::ios::in | std::ios::ate);
-    size_t size;
-    char* inputData;
-
-    if (is) {
-        size = is.tellg();
-        inputData = new char[size];
-
-        is.seekg(0, std::ios::beg);
-        is.read(inputData, size);
-
-        if (!is) std::cout << "error reading file, only read " << is.gcount() << std::endl;
-
-        is.close();
-
-        inputData[size] = '\0';
-
-        return inputData;
-    }
-
-    return (char*)-1;
-}

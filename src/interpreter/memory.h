@@ -13,7 +13,6 @@ struct MMU {
     std::map<int, Segment> table;
     int getPositionReal(int segmentNumber, int movement) {
         Segment segment = table[segmentNumber];
-        std::cout << "Segment: " << segment.base << " " << segment.limit << std::endl;
         if (segment.isInside(movement)) {
             return segment.base + movement;
         } else {
@@ -25,16 +24,16 @@ struct MMU {
 class Memory {
     private:
         char* name;
-        int* pMem;
+        char* pMem;
         struct MMU mmu;
 
-        int* init(char* name, int size);
+        char* init(char* name, int size);
         void create_mmu(std::vector<Segment> segments);
     
     public:
         Memory(char* newName, int size, std::vector<Segment> segments);
         int readInt(int segment, char* offset);
         void writeInt(int segment, char* offset, int value);
-        char readChar(int segment, char* offset);
-        void writeChar(int segment, char* offset, char value);
+        char readChar(int segment, int offset);
+        void writeChar(int segment, int offset, char value);
 };

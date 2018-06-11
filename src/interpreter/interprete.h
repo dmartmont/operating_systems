@@ -8,12 +8,12 @@ class Interprete {
         std::vector<std::string> instructions;
         Memory* memoria;
         int program_counter;
-        const int MEMG = std::stoi("000");
-        const int LITNUM = std::stoi("001");
-        const int LITSTR = std::stoi("010");
-        const int DATANUM = std::stoi("011");
-        const int DATASTR = std::stoi("100");
-        const int WORKLOAD = std::stoi("101");
+        const int MEMG = std::stoi("000", nullptr, 2);
+        const int LITNUM = std::stoi("001", nullptr, 2);
+        const int LITSTR = std::stoi("010", nullptr, 2);
+        const int DATANUM = std::stoi("011", nullptr, 2);
+        const int DATASTR = std::stoi("100", nullptr, 2);
+        const int WORKLOAD = std::stoi("101", nullptr, 2);
         void init(char* filename);
 
     public: 
